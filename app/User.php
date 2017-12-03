@@ -5,7 +5,7 @@ namespace App;
 use Illuminate\Notifications\Notifiable;
 use Illuminate\Foundation\Auth\User as Authenticatable;
 use Laravel\Passport\HasApiTokens;
-
+use App\Data;
 class User extends Authenticatable
 {
     use HasApiTokens,Notifiable;
@@ -27,4 +27,10 @@ class User extends Authenticatable
     protected $hidden = [
         'password', 'remember_token',
     ];
+
+    public function datas() {
+        return $this->hasMany('App\Data');
+    }
+
+
 }

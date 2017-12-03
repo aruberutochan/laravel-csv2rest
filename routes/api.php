@@ -18,3 +18,9 @@ Route::post('/user/register', 'Auth\RegisterController@apiRegister');
 Route::middleware('auth:api')->get('/user', function (Request $request) {
     return $request->user();
 });
+
+Route::get('/data/{data}' , 'DataController@show')->middleware(['auth:api' ]);
+
+Route::resource('data', 'DataController', ['except' => [
+        'create', 'edit', 'update', 'show'
+]])->middleware(['auth:api' ]);
