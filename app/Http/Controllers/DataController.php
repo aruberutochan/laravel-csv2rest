@@ -6,6 +6,7 @@ use Illuminate\Http\Request;
 use App\Data;
 use Auth;
 use App\MetaData;
+use Illuminate\Support\Facades\Storage;
 use App\Http\Resources\DataResource;
 use App\Http\Resources\FieldResource;
 use Excel;
@@ -79,46 +80,46 @@ class DataController extends Controller
         
     }
 
+    public function ajaxtest(Request $request) {
+        return Response::json( $request );
+    }
+
     public function store(Request $request)
     {           
         $this->validate($request, [
-            'file' => 'required|mimes:xls,xlsx,csv,txt',
+            //'file' => 'required|mimes:xls,xlsx,csv,txt,text/csv',
+            'file' => 'required',            
+            'title' => 'required',
         ]);
-
-        $file = Excel::load($request->file('file'), function($excel){
-            $sheets = $excel->getSheetNames();
-            foreach($sheets as $sheetName) {
-                $excel->sheet($sheetName, function($sheet){
-                    // modify or something
-
-                });
+        $file = Excel::load($request->file('file'));
+        $title = preg_replace("/[^a-z0-9\.]/", "_", strtolower($request->title));
+        $name = $title . '-' . time();
+        $file->setFileName($name); 
+        $csvSave = $file->store('csv', storage_path('app/import/'), true);
+        Excel::filter('chunk')->load($csvSave['full'])->chunk(50, function($results) {
+            foreach ($results as $row) {
+                $primaryKey = $row->keys()->first();
+                $primaryValue = $row->$primaryKey;
+    
+                if ( $primaryValue && $primaryKey ) {
+                
+                    $data = Auth::user()->datas()->updateOrCreate([
+                        'primary_key' => $primaryKey,
+                        'primary_value' => $primaryValue,
+                    ]);
+                    
+                    $metas = array();
+    
+                    foreach($row as $colName => $colValue){
+                        if($colName != $primaryKey ) {
+                            $metas[] = new MetaData(['key' => $colName, 'value' => $colValue]);
+                        }                
+                    }
+    
+                    $data->metaDatas()->saveMany( $metas );
+                }
             }
-
         });
-        foreach($file->get() as $row) {
-            $primaryKey = $row->keys()->first();
-            $primaryValue = $row->$primaryKey;
-
-            if (! $primaryValue || ! $primaryKey ) {
-                return redirect()->back()->withErrors(['It is requiered to have first column as primary so it have to be filled']);
-            }
-            $data = Auth::user()->datas()->updateOrCreate([
-                'primary_key' => $primaryKey,
-                'primary_value' => $primaryValue,
-            ]);
-            
-            $metas = array();
-
-            foreach($row as $colName => $colValue){
-                if($colName != $primaryKey ) {
-                    $metas[] = new MetaData(['key' => $colName, 'value' => $colValue]);
-                }                
-            }
-
-            $data->metaDatas()->saveMany( $metas );
-
-            
-        }
 
         return redirect()->route('data.index');
         

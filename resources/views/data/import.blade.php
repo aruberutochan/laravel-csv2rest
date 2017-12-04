@@ -25,7 +25,8 @@
     </div>
     {!! Form::close() !!}
 
-
+    <button class="btn btn-success" id="btn-save"> Ajax </button>
 </div>
 
 @endsection
+

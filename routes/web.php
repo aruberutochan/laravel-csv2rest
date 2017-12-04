@@ -21,6 +21,7 @@ Route::group(['middleware' => 'auth'], function() {
     Route::get('/data/import' , 'DataController@import')->name('data.import');
     Route::get('/data/{data}' , 'DataController@show')->name('data.show');
     Route::delete('/data/{data}' , 'DataController@destroy')->name('data.destroy');
+    Route::post('/data/ajax', 'DataController@ajaxtest')->name('data.ajax');
 
     Route::resource('data', 'DataController', ['except' => [
         'create', 'edit', 'update', 'show', 'destroy'

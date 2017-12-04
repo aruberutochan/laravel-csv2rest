@@ -76,5 +76,43 @@
 
     <!-- Scripts -->
     <script src="{{ asset('js/app.js') }}"></script>
+    <script>
+    $("#btn-save").click(function (e) {
+        $.ajaxSetup({
+            headers: {
+                'X-CSRF-TOKEN': $('input[name="_token"]').attr('content')
+            }
+        })
+        console.log($('input[name="_token"]').attr('content'));
+
+        e.preventDefault();
+
+        var formData = {
+            uno: 'yea',
+            dos: 'nope',
+        }
+
+        var type = "POST"; //for creating new resource
+        var task_id = $('#task_id').val();;
+        var my_url = '/data/ajax';
+
+        console.log(formData);
+
+        $.ajax({
+
+            type: type,
+            url: my_url,
+            data: formData,
+            dataType: 'json',
+            success: function (data) {
+                console.log('si se ha enviao');
+                console.log(data);                
+            },
+            error: function (data) {
+                console.log('Error:', data);
+            }
+        });
+    });
+</script>
 </body>
 </html>
