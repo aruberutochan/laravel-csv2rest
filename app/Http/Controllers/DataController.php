@@ -81,7 +81,23 @@ class DataController extends Controller
     }
 
     public function ajaxtest(Request $request) {
-        return Response::json( $request );
+        $this->validate($request, [
+            //'file' => 'required|mimes:xls,xlsx,csv,txt,text/csv',
+            'file' => 'required',            
+            'title' => 'required',
+        ]);
+        
+        if($request->hasFile('file')) {
+            $file = Excel::load($request->file('file'));
+            $title = preg_replace("/[^a-z0-9\.]/", "_", strtolower($request->title));
+            $name = $title . '-' . time();
+            $file->setFileName($name); 
+            $csvSave = $file->store('csv', storage_path('app/import/'), true);
+            return response()->json($csvSave) ;
+        } else {
+            return response()->json($request) ;
+        }
+        
     }
 
     public function store(Request $request)
