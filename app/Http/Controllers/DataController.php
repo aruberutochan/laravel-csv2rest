@@ -80,6 +80,48 @@ class DataController extends Controller
         
     }
 
+    public function ajaxImport(Request $request) {
+        $this->validate($request, [
+            //'file' => 'required|mimes:xls,xlsx,csv,txt,text/csv',
+            'uri' => 'required',
+            'skip' => 'required',
+            'take' => 'required',
+            'total' => 'required'            
+        ]);
+        
+        if ($request->skip > $request->total) {
+            return response()->json(['finish' => true]);  
+        } else {
+            $results = Excel::load(Storage::url('app/'. $request->uri))->skipRows($request->skip)->takeRows($request->take);
+            foreach ($results->get() as $row) {        
+                
+                $primaryKey = $row->keys()->first();     
+                $primaryValue = $row->$primaryKey;
+    
+                if ( $primaryValue && $primaryKey ) {
+                
+                    $data = Auth::user()->datas()->updateOrCreate([
+                        'primary_key' => $primaryKey,
+                        'primary_value' => $primaryValue,
+                    ]);
+                    
+                    $metas = array();
+    
+                    foreach($row as $colName => $colValue){
+                        if($colName != $primaryKey ) {
+                            $metas[] = new MetaData(['key' => $colName, 'value' => $colValue]);
+                        }                
+                    }
+    
+                    $data->metaDatas()->saveMany( $metas );
+                }
+            }
+            return response()->json(['skip' => $request->skip + $request->take, 'total' => $request->total, 'uri' => $request->uri]) ;
+            
+        }
+                
+    }
+
     public function ajaxtest(Request $request) {
         $this->validate($request, [
             //'file' => 'required|mimes:xls,xlsx,csv,txt,text/csv',

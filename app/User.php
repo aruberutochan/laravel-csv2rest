@@ -6,6 +6,7 @@ use Illuminate\Notifications\Notifiable;
 use Illuminate\Foundation\Auth\User as Authenticatable;
 use Laravel\Passport\HasApiTokens;
 use App\Data;
+use App\File;
 class User extends Authenticatable
 {
     use HasApiTokens,Notifiable;
@@ -30,6 +31,10 @@ class User extends Authenticatable
 
     public function datas() {
         return $this->hasMany('App\Data');
+    }
+
+    public function files() {
+        return $this->hasMany('App\File');
     }
 
 
