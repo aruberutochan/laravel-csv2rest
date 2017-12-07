@@ -38,7 +38,7 @@
 
     {!! Form::hidden('uri', $file->uri , []) !!}
     {!! Form::hidden('skip', 0 , []) !!}
-    {!! Form::hidden('take', 10 , []) !!}
+    {!! Form::hidden('take', 50 , []) !!}
     {!! Form::hidden('total', $total , []) !!}
     
 
@@ -48,6 +48,19 @@
     {!! Form::close() !!}
 
 </div>   
+<div class="container">
+    <div class="col-md-8 col-md-offset-2">
+        <div class="progress aru-progress">
+            
+            <div class="progress-bar progress-bar-striped active progress-bar-success" aria-valuenow="0" aria-valuemin="0" aria-valuemax="100" role="progressbar"  style="width: 0%;">
+              <span id="percent-text" class="text-center"> 0%</span>
+            </div>
+        </div>
+    
+    </div>
+    
+</div>
+
         
 
 @endsection
@@ -69,6 +82,32 @@
             success: function(responseData, textStatus, jqXHR)
             {
                 console.log(responseData);
+                if(responseData.finish) {
+                    console.log('finish');
+                    percent = 100;
+                    jQuery('.progress-bar').css({
+                        width: percent + '%'
+                    });
+                    jQuery('#percent-text').text(percent + '%');
+                } else {
+                    var newData = new FormData($("#data-ajax-form")[0]);
+                    newData.set('skip', responseData.skip);
+                    var percent = Math.round((parseInt(responseData.skip) / parseInt(responseData.total )) * 10000) / 100;
+                    if(percent > 100 ) {
+                        percent = 99;
+                    }    
+                    jQuery('.progress-bar').css({
+                        width: percent + '%'
+                    });
+                    jQuery('#percent-text').text(percent + '%');
+                    
+                    //data.set('uri', responseData.uri);
+                    //data.set('total', responseData.total);
+                    //data.set('take', responseData.take);
+                    //var action = $(this).attr('action');
+                    //data.append('_token', responseData.skip);
+                    savePiece(newData, action)
+                }
                 //console.log(textStatus);
                 //console.log(jqXHR);
                 if(typeof data.error === 'undefined')
@@ -97,6 +136,11 @@
         event.preventDefault(); // Totally stop stuff happening
         var data = new FormData($("#data-ajax-form")[0]);
         var action = $(this).attr('action');
+        percent = 5;
+        jQuery('.progress-bar').css({
+            width: percent + '%'
+        });
+        jQuery('#percent-text').text(percent + '%');
 
         savePiece(data, action);
         
