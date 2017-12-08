@@ -69,5 +69,9 @@
             </tbody>
         @endif
     </table>
+    <div class="text-center">
+         {{ $models->links() }}
+    </div>
+   
 </div>
 @endsection

@@ -10,7 +10,8 @@ use Illuminate\Support\Facades\Storage;
 use App\Http\Resources\DataResource;
 use App\Http\Resources\FieldResource;
 use Excel;
-
+use Carbon\Carbon;
+use DB;
 
 class DataController extends Controller
 {
@@ -81,6 +82,93 @@ class DataController extends Controller
     }
 
     public function ajaxImport(Request $request) {
+        
+        $this->validate($request, [
+            //'file' => 'required|mimes:xls,xlsx,csv,txt,text/csv',
+            'uri' => 'required',
+            'skip' => 'required',
+            'take' => 'required',
+            'total' => 'required'            
+        ]);
+        $user = Auth::user();
+        
+        
+        if ($request->skip > $request->total) {
+            return response()->json(['finish' => true]);  
+        } else {
+            $results = Excel::load(Storage::url('app/'. $request->uri))->skipRows($request->skip)->takeRows($request->take);
+            foreach ($results->toArray() as $row) {  
+                    
+                if(!isset($primaryKey)){
+                    
+                    $primaryKey = key($row);  
+                }                  
+                $primaryValue = $row[$primaryKey];
+    
+                if ( $primaryValue ) {
+                
+                    $data = $user->datas()->updateOrCreate([
+                        'primary_key' => $primaryKey,
+                        'primary_value' => $primaryValue,
+                    ]);
+                    
+                    unset($row[$primaryKey]);
+                    $metas = array();
+                    foreach($row as $colName => $colValue){
+                        if( $colValue ) {
+                            $metas[] = new MetaData(['key' => $colName, 'value' => $colValue]);
+                        }                
+                    }
+    
+                    $data->metaDatas()->saveMany( $metas );
+                }
+            }
+            
+            return response()->json(['skip' => $request->skip + $request->take, 'total' => $request->total, 'uri' => $request->uri]) ;
+            
+        }
+                
+    }
+
+    /**
+    * Mass (bulk) insert or update on duplicate for Laravel 4/5
+    * 
+    * insertOrUpdate([
+    *   ['id'=>1,'value'=>10],
+    *   ['id'=>2,'value'=>60]
+    * ]);
+    * 
+    *
+    * @param array $rows
+    */
+    protected function insertOrUpdate(array $rows){
+        $table = \DB::getTablePrefix().with(new self)->getTable();
+
+
+        $first = reset($rows);
+
+        $columns = implode( ',',
+            array_map( function( $value ) { return "$value"; } , array_keys($first) )
+        );
+
+        $values = implode( ',', array_map( function( $row ) {
+                return '('.implode( ',',
+                    array_map( function( $value ) { return '"'.str_replace('"', '""', $value).'"'; } , $row )
+                ).')';
+            } , $rows )
+        );
+
+        $updates = implode( ',',
+            array_map( function( $value ) { return "$value = VALUES($value)"; } , array_keys($first) )
+        );
+
+        $sql = "INSERT INTO {$table}({$columns}) VALUES {$values} ON DUPLICATE KEY UPDATE {$updates}";
+
+        return \DB::statement( $sql );
+    }
+
+
+    public function ajaxImportSlow(Request $request) {
         $this->validate($request, [
             //'file' => 'required|mimes:xls,xlsx,csv,txt,text/csv',
             'uri' => 'required',
@@ -108,7 +196,7 @@ class DataController extends Controller
                     $metas = array();
     
                     foreach($row as $colName => $colValue){
-                        if($colName != $primaryKey ) {
+                        if($colName != $primaryKey && $colValue ) {
                             $metas[] = new MetaData(['key' => $colName, 'value' => $colValue]);
                         }                
                     }

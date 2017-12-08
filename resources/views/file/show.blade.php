@@ -38,7 +38,7 @@
 
     {!! Form::hidden('uri', $file->uri , []) !!}
     {!! Form::hidden('skip', 0 , []) !!}
-    {!! Form::hidden('take', 50 , []) !!}
+    {!! Form::hidden('take', 1000 , []) !!}
     {!! Form::hidden('total', $total , []) !!}
     
 
@@ -136,7 +136,7 @@
         event.preventDefault(); // Totally stop stuff happening
         var data = new FormData($("#data-ajax-form")[0]);
         var action = $(this).attr('action');
-        percent = 5;
+        percent = 0.01;
         jQuery('.progress-bar').css({
             width: percent + '%'
         });
