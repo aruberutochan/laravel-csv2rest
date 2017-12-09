@@ -10,8 +10,7 @@ use Illuminate\Support\Facades\Storage;
 use App\Http\Resources\DataResource;
 use App\Http\Resources\FieldResource;
 use Excel;
-use Carbon\Carbon;
-use DB;
+use App\File;
 
 class DataController extends Controller
 {
@@ -171,6 +170,7 @@ class DataController extends Controller
     public function ajaxImportSlow(Request $request) {
         $this->validate($request, [
             //'file' => 'required|mimes:xls,xlsx,csv,txt,text/csv',
+            'file_id' => 'required',
             'uri' => 'required',
             'skip' => 'required',
             'take' => 'required',
@@ -204,9 +204,13 @@ class DataController extends Controller
                     $data->metaDatas()->saveMany( $metas );
                 }
             }
+            $file = new File();
+            $file->processed = $request->skip + $request->take;
+            $file->save();
             return response()->json(['skip' => $request->skip + $request->take, 'total' => $request->total, 'uri' => $request->uri]) ;
             
         }
+
                 
     }
 
