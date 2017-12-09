@@ -122,7 +122,11 @@ class DataController extends Controller
                     $data->metaDatas()->saveMany( $metas );
                 }
             }
-            
+
+            $file = $user->files()->find($request->file_id)->first();
+
+            $file->processed =  $request->skip + $request->take;
+            $file->save();
             return response()->json(['skip' => $request->skip + $request->take, 'total' => $request->total, 'uri' => $request->uri]) ;
             
         }

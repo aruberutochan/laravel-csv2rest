@@ -37,14 +37,9 @@
     {{ Form::open(['route' => 'data.ajaximport' , 'files' => true, 'id' => 'data-ajax-form' ]) }}   
     {!! Form::hidden('file_id', $file->id , []) !!}
     {!! Form::hidden('uri', $file->uri , []) !!}
-<<<<<<< Updated upstream
-    {!! Form::hidden('skip', 0 , []) !!}
-    {!! Form::hidden('take', 1000 , []) !!}
-=======
     <?php $skip = $file->processed ? $file->processed : 0; ?>
     {!! Form::hidden('skip', $skip , []) !!}
-    {!! Form::hidden('take', 50 , []) !!}
->>>>>>> Stashed changes
+    {!! Form::hidden('take', 200 , []) !!}
     {!! Form::hidden('total', $total , []) !!}
     
 

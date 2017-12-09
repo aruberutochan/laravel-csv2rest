@@ -7,7 +7,7 @@ use App\User;
 class File extends Model
 {
     protected $fillable = [
-        'name', 'uri'
+        'name', 'uri', 'processed'
     ];
     public $fields = [
         [   
